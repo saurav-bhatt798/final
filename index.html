@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Event Manager</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <div class="wrap">
+      <div class="row">
+        <h1 id="headerTitle">Event Manager</h1>
+        <span class="pill" id="headerDate">Today</span>
+      </div>
+      <nav>
+        <!-- Public Tabs -->
+        <button class="active" data-tab="home">Home</button>
+        <button data-tab="register">Register</button>
+        <button data-tab="attendance">Attendance</button>
+        <button data-tab="certificates">Certificates</button>
+        <button data-tab="settings">Settings</button>
+        <button data-tab="help">Help</button>
+        
+        <!-- Admin Only -->
+        <button data-tab="admin" id="adminTab" class="hidden">Admin</button>
+        
+        <span class="flex-1"></span>
+        
+        <!-- Auth Section -->
+        <span id="userBadge" class="muted hidden"></span>
+        <button id="logoutBtn" class="btn hidden">Logout</button>
+        <button data-tab="login" id="loginTab" class="btn">Login</button>
+        <button data-tab="signup" id="signupTab" class="btn">Sign Up</button>
+        <button id="themeBtn" class="btn">Dark Mode</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="wrap">
+    
+    <!-- Home Tab -->
+    <section class="card" data-tab="home">
+      <div class="hero">
+        <div class="orb a"></div>
+        <div class="orb b"></div>
+        <h2 class="hero-title">Smart Event Management System</h2>
+        <div class="hero-sub">Easy registrations, attendance tracking, QR check-ins, and certificates</div>
+        <div class="actions">
+          <button id="ctaRegister" class="btn primary">Register Participants</button>
+          <button id="ctaAttendance" class="btn ghost">Manage Attendance</button>
+        </div>
+      </div>
+      
+      <div class="features">
+        <div class="glass">
+          <div class="feat-title">Participant Registration</div>
+          <div class="muted">Register solo participants or teams with member management</div>
+        </div>
+        <div class="glass">
+          <div class="feat-title">Attendance Tracking</div>
+          <div class="muted">Mark presence, search participants, export data</div>
+        </div>
+        <div class="glass">
+          <div class="feat-title">QR Check-in</div>
+          <div class="muted">Generate QR codes for quick event check-in</div>
+        </div>
+        <div class="glass">
+          <div class="feat-title">Certificates</div>
+          <div class="muted">Create and print participation certificates</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Registration Tab -->
+    <section class="card hidden" data-tab="register">
+      <h3>Register Participants</h3>
+      <form id="regForm">
+        <div class="toolbar">
+          <label><input type="radio" name="regType" value="solo" checked /> Solo Participant</label>
+          <label><input type="radio" name="regType" value="team" /> Team</label>
+        </div>
+
+        <!-- Solo Fields -->
+        <div id="soloFields" class="grid">
+          <div class="field">
+            <label>Full Name *</label>
+            <input id="soloName" type="text" placeholder="Enter full name" required />
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input id="soloEmail" type="email" placeholder="email@example.com" />
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input id="soloPhone" type="tel" placeholder="Phone number" />
+          </div>
+        </div>
+
+        <!-- Team Fields -->
+        <div id="teamFields" class="grid hidden">
+          <div class="field">
+            <label>Team Name *</label>
+            <input id="teamName" type="text" placeholder="Team name" />
+          </div>
+          <div class="field">
+            <label>Contact Email</label>
+            <input id="teamEmail" type="email" placeholder="email@example.com" />
+          </div>
+          <div class="field">
+            <label>Contact Phone</label>
+            <input id="teamPhone" type="tel" placeholder="Phone number" />
+          </div>
+        </div>
+
+        <!-- Team Members -->
+        <div id="teamMembers" class="hidden mt-10">
+          <div class="toolbar">
+            <div class="muted">Team Members</div>
+            <button type="button" id="setTeamMembers" class="btn">Add Members</button>
+          </div>
+          <div id="teamMembersList" class="stack"></div>
+        </div>
+
+        <div class="toolbar mt-12">
+          <button id="saveBtn" class="btn primary" type="submit">Save Registration</button>
+          <button type="reset" class="btn">Clear Form</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Attendance Tab -->
+    <section class="card hidden" data-tab="attendance">
+      <h3>Attendance Management</h3>
+      <div class="toolbar">
+        <input id="attSearch" class="input min-w-220" type="text" placeholder="Search participants..." />
+        <button class="btn" id="exportCsv">Export CSV</button>
+        <button class="btn" id="scanQrText">Scan QR Code</button>
+        <button class="btn" id="printAtt">Print View</button>
+      </div>
+      
+      <div class="scroll-x">
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Name / Team</th>
+              <th>Contact</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="attBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Certificates Tab -->
+    <section class="card hidden" data-tab="certificates">
+      <h3>Generate Certificates</h3>
+      <div class="toolbar">
+        <button class="btn primary" id="printCerts">Print Selected Certificates</button>
+      </div>
+      <div id="certList" class="stack"></div>
+      <div id="printArea" class="hidden"></div>
+    </section>
+
+    <!-- Settings Tab -->
+    <section class="card hidden" data-tab="settings">
+      <h3>Event Settings</h3>
+      <div class="grid">
+        <div class="field">
+          <label>Event Name</label>
+          <input id="eventName" type="text" placeholder="Event name" />
+        </div>
+        <div class="field">
+          <label>Event Date</label>
+          <input id="eventDate" type="date" />
+        </div>
+        <div class="field">
+          <label>Min Team Size</label>
+          <input id="minTeamSize" type="number" min="1" value="2" />
+        </div>
+        <div class="field">
+          <label>Max Team Size</label>
+          <input id="maxTeamSize" type="number" min="1" value="5" />
+        </div>
+      </div>
+      
+      <div class="toolbar mt-12">
+        <button class="btn primary" id="saveSettings">Save Settings</button>
+        <button class="btn" id="exportJson">Export Data</button>
+        <label class="btn clickable" for="importJson">Import Data</label>
+        <input id="importJson" type="file" accept="application/json" class="hidden-input" />
+        <button class="btn warn" id="clearAll">Clear All Data</button>
+      </div>
+    </section>
+
+    <!-- Help Tab -->
+    <section class="card hidden" data-tab="help">
+      <h3>Help & Instructions</h3>
+      <div class="stack">
+        <div class="glass">
+          <h4>Getting Started</h4>
+          <ol>
+            <li>Set your event details in <strong>Settings</strong></li>
+            <li>Register participants in the <strong>Register</strong> tab</li>
+            <li>Track attendance in the <strong>Attendance</strong> tab</li>
+            <li>Generate certificates as needed</li>
+          </ol>
+        </div>
+        
+        <div class="glass">
+          <h4>Features</h4>
+          <ul>
+            <li><strong>Solo & Team Registration:</strong> Support for individual and team participants</li>
+            <li><strong>QR Codes:</strong> Generate check-in codes for each participant</li>
+            <li><strong>Data Export:</strong> Export to CSV or JSON formats</li>
+            <li><strong>Certificates:</strong> Printable participation certificates</li>
+            <li><strong>Dark Mode:</strong> Toggle between light and dark themes</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Login Tab -->
+    <section class="card hidden" data-tab="login">
+      <h3>Login to Your Account</h3>
+      <form id="loginForm" class="stack max-w-420">
+        <div class="field">
+          <label>Email Address</label>
+          <input id="loginEmail" type="email" placeholder="your@email.com" required />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input id="loginPassword" type="password" placeholder="Enter password" required />
+        </div>
+        <div class="toolbar mt-12">
+          <button class="btn primary" type="submit">Login</button>
+          <span class="muted">Don't have an account?</span>
+          <button class="btn" type="button" id="goSignup">Sign Up</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Sign Up Tab -->
+    <section class="card hidden" data-tab="signup">
+      <h3>Create New Account</h3>
+      <form id="signupForm" class="stack max-w-420">
+        <div class="field">
+          <label>Full Name</label>
+          <input id="suName" type="text" placeholder="Your full name" required />
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <input id="suEmail" type="email" placeholder="your@email.com" required />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input id="suPassword" type="password" placeholder="Choose a password" required />
+        </div>
+        <div class="field">
+          <label>Account Type</label>
+          <select id="suRole">
+            <option value="user">Regular User</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </div>
+        <div class="toolbar mt-12">
+          <button class="btn primary" type="submit">Create Account</button>
+          <span class="muted">Already have an account?</span>
+          <button class="btn" type="button" id="goLogin">Login</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Admin Dashboard -->
+    <section class="card hidden" data-tab="admin">
+      <h3>Admin Dashboard</h3>
+      
+      <!-- Statistics -->
+      <div class="features">
+        <div class="glass">
+          <div class="feat-title">Total Participants</div>
+          <div class="muted"><span id="statTotal">0</span> registered</div>
+        </div>
+        <div class="glass">
+          <div class="feat-title">Present Today</div>
+          <div class="muted"><span id="statPresent">0</span> checked in</div>
+        </div>
+        <div class="glass">
+          <div class="feat-title">Teams</div>
+          <div class="muted"><span id="statTeams">0</span> team entries</div>
+        </div>
+        <div class="glass">
+          <div class="feat-title">Users</div>
+          <div class="muted"><span id="statUsers">0</span> system users</div>
+        </div>
+      </div>
+
+      <!-- Admin Actions -->
+      <div class="toolbar mt-12">
+        <button class="btn primary" id="adminGoAttendance">Manage Attendance</button>
+        <button class="btn" id="adminGoSettings">Event Settings</button>
+        <button class="btn" id="adminExport">Export All Data</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>Event Management System &copy; 2024</span>
+      <span>All data stored locally in your browser</span>
+    </div>
+  </footer>
+
+  <!-- QR Code Modal -->
+  <div id="qrModal" class="hidden modal-backdrop">
+    <div class="modal-card">
+      <div class="row between">
+        <div class="fw-600">Participant QR Code</div>
+        <button id="qrClose" class="btn">Close</button>
+      </div>
+      <div class="muted mt-6" id="qrLabel">Scan for check-in</div>
+      <div id="qrBox" class="qr center"></div>
+      <div class="muted mt-8">Scan this code with any QR scanner app</div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
